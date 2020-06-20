@@ -33,7 +33,7 @@ model = Model(model_name = 'onizuka-eta', model_path = 'checkpoints/checkpoint.p
 print(model.name, model.id, model.version, sep = '\t')
 
 service = Model.deploy(workspace=ws, 
-                           name='aci-birds', 
+                           name='transfomap', 
                            models=[model], 
                            inference_config=inference_config, 
                            deployment_config=aciconfig)

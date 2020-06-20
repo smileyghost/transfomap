@@ -69,7 +69,7 @@ def init():
     model.eval()
 
 def run(input_data):
-    raw_data = json.loads(input_data['data'])
+    raw_data = json.loads(input_data)
     timestamp = datetime.datetime.utcfromtimestamp(raw_data['timestamp']).strftime('%Y-%m-%dT%H:%M:%S.000000')
     
     # rainfall rate in milimeters
