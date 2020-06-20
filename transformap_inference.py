@@ -8,6 +8,7 @@ from pathlib import Path
 import math
 import sys
 import os
+import dateutil
 
 from PIL import Image
 import requests
@@ -61,7 +62,7 @@ def init():
     transformer_model.to(device)
     model.to(device)
 
-    model_path = os.path.join(os.getenv('AZUREML_MODEL_DIR'), 'checkpoint.pt')
+    model_path = os.path.join(os.getenv('AZUREML_MODEL_DIR'), 'checkpoint.pth')
     checkpoint = torch.load(model_path)
     model.load_state_dict(checkpoint['model'])
 
@@ -92,15 +93,24 @@ def run(input_data):
         T.ToTensor(),
         T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
-    print(image_data.size)
+    # Time
+    origin_time = dateutil.parser.parse(timestamp)
+    time_of_day = datetime.strftime(origin_time, "%H%M")
+    day_of_week = origin_time.weekday()
+    # Distance meters to kilometers
+    distance = distance / 1000
+    # Transform image
     image_data = transforms_image(image_data)
+    # Create queries
+    query = torch.tensor([
+        rainfall,
+        distance,
+        time_of_day,
+        day_of_week
+    ])
     sample = image_data.unsqueeze(1)
 
     with torch.no_grad():
-        output = model(input_data)
+        output = model(sample, query)
         result = {"eta": output}
         return result
-
-inputs = {}
-inputs['data'] = '{"latitude_origin": -6.141255, "longitude_origin": 106.692710, "latitude_destination": -6.141150, "longitude_destination": 106.693154, "timestamp": 1590487113}'
-run(inputs)
