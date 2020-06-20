@@ -18,7 +18,7 @@ class MapQueryDataset(Dataset):
     def __init__(self, data_dir='./datasets', split='train', transforms=None):
         
         self.data_dir = data_dir 
-        self.image_names, self.trajectory = read_json(data_dir+"/query/"+ split +"/*.geojson")
+        self.image_names, self.trajectory = read_data(data_dir, split)
         self._transforms = transforms
         self.split = split
         
@@ -29,26 +29,28 @@ class MapQueryDataset(Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-        image_path = self.data_dir + "/image/" + self.split + "/" + self.image_names[idx]
-        try:
-            image = Image.open(image_path)
-            query = self.trajectory[idx]
-            if self._transforms is not None:
-                image = self._transforms(image)
-                query = torch.from_numpy(query)
-            
-            # queries = [rain_fall_rate, distance, time_of_day, day_of_week]
-            # Return image, queries, duration
-            return image, query[1:], query[0] 
-        except Exception as e:
-            self.trajectory = np.delete(self.trajectory, idx)
 
-def read_json(json_path):
-    json_paths = glob.glob(json_path)
+        image = Image.open(self.image_names[idx]).convert('RGB')
+        query = self.trajectory[idx]
+        if self._transforms is not None:
+            image = self._transforms(image)
+            query = torch.from_numpy(query)
+
+        # queries = [rain_fall_rate, distance, time_of_day, day_of_week]
+        # Return image, queries, duration
+        return image, query[1:], query[0]
+
+def read_data(data_dir, split):
+    data_paths = data_dir + "/image/"+ split +"/*.png"
+    data_paths = glob.glob(data_paths)
     json_data = []
     image_names = []
-    for json_file in json_paths:
-        with open(json_file, "r") as data_file:
+    for data_path in data_paths:
+        true_path = Path(data_path)
+        image_names.append(data_path)
+        query_name = str(true_path.stem) + '.geojson'
+        query_path = str(true_path.parents[2] / 'query' / split / query_name)
+        with open(query_path, "r") as data_file:
             data_loaded = json.load(data_file)
             data_loaded = data_loaded['features'][0]['properties']
 
@@ -58,7 +60,6 @@ def read_json(json_path):
             duration =  destination_time - origin_time
             duration = duration.total_seconds()
             day_of_week = origin_time.weekday()
-            image_name = data_loaded['trj_id'] + ".png"
             distance = data_loaded['distance'] / 1000 # meters -> kilometers
             rain_fall_rate = data_loaded['rainfall']
             # data[duration, distance, rain_fall_rate, time_of_day, day_of_week]
@@ -70,5 +71,4 @@ def read_json(json_path):
                 day_of_week
             ]
             json_data.append(query)
-            image_names.append(image_name)
     return (np.array(image_names), np.array(json_data))

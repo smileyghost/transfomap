@@ -24,13 +24,14 @@ from skimage import io
 from models.transformer import TransformerModel
 from models.tramap import TraMapModel
 from models.backbone import BackboneModel
+from custom_criterion import MSLELoss
 
 from dataset import MapQueryDataset
 
 def get_args_parser():
     parser = argparse.ArgumentParser('TransforMap', add_help=False)
     parser.add_argument('--lr', default=1e-4, type=float)
-    parser.add_argument('--lr_backbone', default=1e-5, type=float)
+    parser.add_argument('--lr_backbone', default=1e-4, type=float)
     parser.add_argument('--batch_size', default=2, type=int)
     parser.add_argument('--weight_decay', default=1e-4, type=float)
     parser.add_argument('--epochs', default=300, type=int)
@@ -141,7 +142,7 @@ def main(args):
         test_stats = None
     
     # Criterion / Loss function
-    criterion = nn.MSELoss()
+    criterion = MSLELoss()
     criterion.to(device)
 
     # Logger thing
@@ -161,8 +162,7 @@ def main(args):
         ## Training process ##
         # Move to GPU or CPU
         for sample, query, duration in data_returner(data_loader_train):
-            print(query)
-            print(sample)
+
             query = query.to(device)
             sample = sample.to(device)
             ## Target duration
@@ -186,8 +186,9 @@ def main(args):
             optimizer.step()
 
             if i % print_every == 0:
+                # print("Output: {} Target: {}".format(outputs.tolist()[0], duration.tolist()[0]))
                 if torch.cuda.is_available():
-                    print("Iter: {} Memory: {:d} Loss: {}".format(i, math.trunc(torch.cuda.max_memory_allocated() / MB), loss_value))
+                    print("Iter: {} Memory: {:d}MB Loss: {}".format(i, math.trunc(torch.cuda.max_memory_allocated() / MB), loss_value))
                 else:
                     print("Iter: {} Loss:{}".format(i, loss_value))
             i += 1

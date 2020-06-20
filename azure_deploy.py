@@ -1,8 +1,8 @@
-from azureml.core.model import Model
+import azureml.core
+from azureml.core.workspace import Workspace
 
-
-model = Model.register(
-    model_path = "./checkpoints",
-    model_name = "transformap",
-    workspace = "grab-map"
-)
+ws = Workspace.from_config()
+print('Workspace name: ' + ws.name, 
+      'Azure region: ' + ws.location, 
+      'Subscription id: ' + ws.subscription_id, 
+      'Resource group: ' + ws.resource_group, sep='\n')

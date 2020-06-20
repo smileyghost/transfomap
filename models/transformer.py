@@ -41,14 +41,14 @@ class TransformerModel(nn.Module):
     
     def forward(self, src, query_embed, pos_embed):
         # src [batch_size x C x H x W] to [HW x batch_size x C]
-        # bs, c, h, w = src.shape
 
         src = src.flatten(2).permute(2,0,1)
         pos_embed = pos_embed.flatten(2).permute(2,0,1)
         src = src + pos_embed
         query_embed = query_embed.unsqueeze(1)
         query_embed = query_embed.float()
-
+        # query [ batch_size x 1 x dim_size] to [1 x batch_size x dim_size]
+        query_embed = query_embed.permute(1,0,2)
         memory = self.transformer_encoder(src)
         hs = self.transformer_decoder(query_embed, memory)
         return hs
