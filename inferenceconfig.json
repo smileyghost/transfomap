@@ -1,10 +1,10 @@
 {
-    "entryScript": "score.py",
+    "entryScript": "trasformap.py",
     "environment": {
         "docker": {
             "arguments": [],
             "baseDockerfile": null,
-            "baseImage": "mcr.microsoft.com/azureml/base:intelmpi2018.3-ubuntu16.04",
+            "baseImage": "mcr.microsoft.com/azureml/base:openmpi3.1.2-ubuntu18.04",
             "enabled": false,
             "sharedVolumes": true,
             "shmSize": null
@@ -37,5 +37,6 @@
             "userManagedDependencies": false
         },
         "version": "1"
-    }
+    },
+    "sourceDirectory": "./"
 }
