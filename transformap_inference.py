@@ -9,6 +9,7 @@ import math
 import sys
 import os
 import dateutil
+from pytz import timezone
 
 from PIL import Image
 import requests
@@ -63,14 +64,16 @@ def init():
     model.to(device)
 
     model_path = os.path.join(os.getenv('AZUREML_MODEL_DIR'), 'checkpoint.pth')
-    checkpoint = torch.load(model_path)
+    checkpoint = torch.load(model_path, map_location='cpu')
     model.load_state_dict(checkpoint['model'])
 
     model.eval()
 
 def run(input_data):
     raw_data = json.loads(input_data)
-    timestamp = datetime.datetime.utcfromtimestamp(raw_data['timestamp']).strftime('%Y-%m-%dT%H:%M:%S.000000')
+    timestamp = datetime.datetime.utcfromtimestamp(raw_data['timestamp'])
+    timestamp = timestamp.replace(tzinfo=timezone('Asia/Singapore'))
+    timestamp = timestamp.strftime('%Y-%m-%dT%H:%M:%S.000000')
     
     # rainfall rate in milimeters
     rainfall = getRainfall_coordinates(
@@ -88,14 +91,14 @@ def run(input_data):
         longitude_dest=raw_data['longitude_destination']
     )
     
-    image_data = Image.open(image_bytes)
+    image_data = Image.open(image_bytes).convert('RGB')
     transforms_image = T.Compose([
         T.ToTensor(),
         T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
     # Time
     origin_time = dateutil.parser.parse(timestamp)
-    time_of_day = datetime.strftime(origin_time, "%H%M")
+    time_of_day = datetime.datetime.strftime(origin_time, "%H%M")
     day_of_week = origin_time.weekday()
     # Distance meters to kilometers
     distance = distance / 1000
@@ -105,12 +108,13 @@ def run(input_data):
     query = torch.tensor([
         rainfall,
         distance,
-        time_of_day,
-        day_of_week
+        int(time_of_day),
+        int(day_of_week)
     ])
-    sample = image_data.unsqueeze(1)
+    query = query.unsqueeze(0)
+    sample = image_data.unsqueeze(0)
 
     with torch.no_grad():
         output = model(sample, query)
-        result = {"eta": output}
+        result = {"eta": int(output.item())}
         return result
