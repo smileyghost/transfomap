@@ -20,3 +20,42 @@ Our model consist of Convolution Neural Network (ConvNet) and Self-Attention Tra
 
 ## Model Serving
 We deploy our model in AzureML to track our updated model. We serve the model with AzureML Webservice. To handle the traffics, we put [frontend_apps.py](frontend_apps.py) in front of the webservice.
+
+## Endpoint and Parameters
+### Endpoint
+```
+POST http://52.163.247.185/prediction
+```
+### Expected input
+```json
+{
+    "latitude_origin": FLOAT,
+    "longitude_origin": FLOAT,
+    "latitude_destination": FLOAT,
+    "longitude_destination": FLOAT,
+    "timestamp": INT (UNIX UTC FORMAT)
+}
+```
+- Example
+```json
+{
+    "latitude_origin": 1.330076,
+    "longitude_origin": 103.855174,
+    "latitude_destination": 1.349251,
+    "longitude_destination": 103.98509,
+    "timestamp": 1555728612
+}
+```
+### Expected output
+
+```json
+{
+    "eta": INT (in seconds)
+}
+```
+- Example
+```json
+{
+    "eta": 1238
+}
+```
