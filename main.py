@@ -142,7 +142,10 @@ def main(args):
         test_stats = None
     
     # Criterion / Loss function
-    criterion = MSLELoss()
+    # criterion = MSLELoss()
+    # criterion = nn.MSELoss()
+    # criterion = nn.L1Loss()
+    criterion = nn.SmoothL1Loss()
     criterion.to(device)
 
     # Logger thing
@@ -168,9 +171,10 @@ def main(args):
             ## Target duration
             duration = duration.to(device)
             duration = duration.float()
-            
             outputs = model(sample, query)
             outputs = outputs.flatten()
+            # RMSE if criterion set to MSE
+            # loss = torch.sqrt(criterion(outputs, duration) + 1e-6)
             loss = criterion(outputs, duration)
 
             loss_value = loss.item()

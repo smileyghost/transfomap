@@ -51,4 +51,4 @@ class TransformerModel(nn.Module):
         query_embed = query_embed.permute(1,0,2)
         memory = self.transformer_encoder(src)
         hs = self.transformer_decoder(query_embed, memory)
-        return hs
+        return hs.permute(1,0,2)
