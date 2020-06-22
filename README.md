@@ -19,7 +19,7 @@ Our model consist of Convolution Neural Network (ConvNet) and Self-Attention Tra
 - day_of_week (0-6, 0 denoted as monday)
 
 ## Model Serving
-We deploy our model in AzureML to track our updated model. We serve the model with AzureML Webservice. To handle the traffics, we put [frontend_apps.py](frontend_apps.py) in front of the webservice.
+We deploy our model in AzureML to track our updated model. We serve the model with AzureML Webservice. To handle the traffics, we use NGINX as load balancer between three webservices.
 
 ## Endpoint and Parameters
 ### Endpoint
