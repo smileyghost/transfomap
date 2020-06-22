@@ -4,6 +4,8 @@ import dateutil
 from datetime import datetime
 import json
 from PIL import Image
+from pytz import timezone
+
 
 import torch
 from torch.utils.data import Dataset
@@ -56,6 +58,8 @@ def read_data(data_dir, split):
 
             origin_time = dateutil.parser.parse(data_loaded['origin_time'])
             destination_time = dateutil.parser.parse(data_loaded['destination_time'])
+            origin_time = origin_time.replace(tzinfo=timezone('Asia/Singapore'))
+            destination_time = destination_time.replace(tzinfo=timezone('Asia/Singapore'))
             time_of_day = datetime.strftime(origin_time, "%H%M")
             duration =  destination_time - origin_time
             duration = duration.total_seconds()
