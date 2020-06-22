@@ -142,10 +142,10 @@ def main(args):
         test_stats = None
     
     # Criterion / Loss function
-    # criterion = MSLELoss()
+    criterion = MSLELoss()
     # criterion = nn.MSELoss()
     # criterion = nn.L1Loss()
-    criterion = nn.SmoothL1Loss()
+    # criterion = nn.SmoothL1Loss()
     criterion.to(device)
 
     # Logger thing
@@ -174,8 +174,9 @@ def main(args):
             outputs = model(sample, query)
             outputs = outputs.flatten()
             # RMSE if criterion set to MSE
-            # loss = torch.sqrt(criterion(outputs, duration) + 1e-6)
-            loss = criterion(outputs, duration)
+            loss = torch.sqrt(criterion(outputs, duration) + 1e-6)
+            # Else
+            # loss = criterion(outputs, duration)
 
             loss_value = loss.item()
             if not math.isfinite(loss_value):
@@ -193,6 +194,7 @@ def main(args):
                 # print("Output: {} Target: {}".format(outputs.tolist()[0], duration.tolist()[0]))
                 if torch.cuda.is_available():
                     print("Iter: {} Memory: {:d}MB Loss: {}".format(i, math.trunc(torch.cuda.max_memory_allocated() / MB), loss_value))
+                    print(outputs[0].item(), duration[0].item())
                 else:
                     print("Iter: {} Loss:{}".format(i, loss_value))
             i += 1

@@ -22,9 +22,8 @@ class TraMapModel(nn.Module):
 
         self.time_embed = nn.Embedding(2400, hidden_dim)
         self.day_embed = nn.Embedding(7, hidden_dim)
-        self.rain_embed = nn.Embedding(1, hidden_dim)
-        self.distance_embed = nn.Embedding(1, hidden_dim)
-
+        self.rain_embed = nn.Linear(1, hidden_dim)
+        self.distance_embed = nn.Linear(1, hidden_dim)
         self.output_layer = nn.Linear(hidden_dim, 1)
 
     def forward(self, samples, query):
@@ -36,13 +35,15 @@ class TraMapModel(nn.Module):
         distance = query[:,1]
         time = query[:,2].long()
         day = query[:,3].long()
-        rain_t = torch.zeros_like(rain).long()
-        dist_t = torch.zeros_like(distance).long()
         
+        rain = self.rain_embed(rain.unsqueeze(1).float())
+        distance = self.distance_embed(distance.unsqueeze(1).float())
+
         query_embed = self.time_embed(time)
         query_embed = query_embed + self.day_embed(day) 
-        query_embed = query_embed + self.rain_embed(rain_t) * rain.unsqueeze(1)
-        query_embed = query_embed + self.distance_embed(dist_t) * distance.unsqueeze(1)
+        query_embed = query_embed + rain
+        query_embed = query_embed + distance
+
         hs = self.transformer(map_features, query_embed, pos_embed)
         output = self.output_layer(hs)
         return output
