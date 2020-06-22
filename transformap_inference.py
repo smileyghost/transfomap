@@ -40,19 +40,23 @@ from map_generator import map_image_generator
 def init():
     global model
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model_path = os.path.join(os.getenv('AZUREML_MODEL_DIR'), 'checkpoint.pth')
+    checkpoint = torch.load(model_path, map_location='cpu')
 
-    hidden_dim = 256
-    nheads = 8
-    layers = 6
-    dim_feedforward = 2048
-    dropout = 0.1
+    args = checkpoint['args']
+    hidden_dim = args.hidden_dim
+    nheads = args.nheads
+    enc_layers = args.enc_layers
+    dec_layers = args.dec_layers
+    dim_feedforward = args.dim_feedforward
+    dropout = args.dropout
     # Build the models
-    backbone_model = BackboneModel(hidden_dim=hidden_dim)
+    backbone_model = BackboneModel(hidden_dim=hidden_dim, arch=args.backbone)
     transformer_model = TransformerModel(
         d_model=hidden_dim,
         n_head=nheads,
-        num_encoder_layers=layers,
-        num_decoder_layers=layers,
+        num_encoder_layers=enc_layers,
+        num_decoder_layers=dec_layers,
         dim_feedforward=dim_feedforward,
         dropout=dropout,
         activation="relu",
@@ -63,8 +67,6 @@ def init():
     transformer_model.to(device)
     model.to(device)
 
-    model_path = os.path.join(os.getenv('AZUREML_MODEL_DIR'), 'checkpoint.pth')
-    checkpoint = torch.load(model_path, map_location='cpu')
     model.load_state_dict(checkpoint['model'])
 
     model.eval()
