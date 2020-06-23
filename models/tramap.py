@@ -35,14 +35,10 @@ class TraMapModel(nn.Module):
         distance = query[:,1]
         time = query[:,2].long()
         day = query[:,3].long()
-        
         rain = self.rain_embed(rain.unsqueeze(1).float())
         distance = self.distance_embed(distance.unsqueeze(1).float())
 
-        query_embed = self.time_embed(time)
-        query_embed = query_embed + self.day_embed(day) 
-        query_embed = query_embed + rain
-        query_embed = query_embed + distance
+        query_embed = self.time_embed(time) + self.day_embed(day) + rain + distance
 
         hs = self.transformer(map_features, query_embed, pos_embed)
         output = self.output_layer(hs)

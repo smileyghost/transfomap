@@ -119,7 +119,7 @@ def main(args):
     # Data loader
     transforms = T.Compose([
         T.ToTensor(),
-        T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        T.Normalize(mean=[0.1888, 0.2168, 0.2469], std=[0.3322, 0.2871, 0.2899])
     ])
 
     dataset_train = MapQueryDataset(transforms=transforms, split='train')
